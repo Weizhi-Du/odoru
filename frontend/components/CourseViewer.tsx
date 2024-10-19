@@ -26,6 +26,7 @@ const CourseViewer = ({ course, lessonProgress = [], setLessonProgress }: Props)
 
   const [activeLesson, setActiveLesson] = useState(course.lessons[lessonIndex]);
   const playbackId = activeLesson?.video?.publicPlaybackId
+  console.log("video status: %s",activeLesson?.video?.status )
   const videoReady = activeLesson?.video?.status === "ready"
   const placeholder = activeLesson?.video?.placeholder
 
@@ -55,7 +56,7 @@ const CourseViewer = ({ course, lessonProgress = [], setLessonProgress }: Props)
       </div>
     );
   }
-
+  console.log("playbackid and video ready %s,%s",playbackId,videoReady);
   return (
     <div className='px-5 grid grid-cols-1 lg:grid-cols-[70%_30%]'>
       <div>
