@@ -1,2 +1,5 @@
-cv2
+Flask
+Flask-SocketIO
+eventlet
+opencv-python
 mediapipe
