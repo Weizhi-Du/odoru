@@ -38,29 +38,23 @@ def detect_pose(frames):
 def match(action, target, w, h):
     action = action.pose_landmarks.landmark
     target = target.pose_landmarks.landmark
-    def dist(x1, y1, x2, y2):
-        return ((x1-x2)**2+(y1-y2)**2)**0.5
-    def origin(landmark):
-        x = (landmark[pose_landmark.LEFT_HIP].x * w + landmark[pose_landmark.RIGHT_HIP].x * w)/2
-        y = (landmark[pose_landmark.LEFT_HIP].y * h + landmark[pose_landmark.RIGHT_HIP].y * h)/2
-        return x, y
     # action 原点
-    o1x, o1y = origin(action)
-    print(o1x, o1y)
-    o2x, o2y = origin(target)
-    print(o2x, o2y)
-    cnt, difference = 0, 0
     body1, body2 = [], []
-    for i in [0, 9, 10, 11, 12, 13, 14, 21, 22, 23, 24, 25, 26]:
+    for i in [0, 11, 12, 13, 14, 21, 22, 23, 24, 25, 26, 27, 28]:
         if action[i].visibility < 0.5 or target[i].visibility < 0.5: continue
-        cnt += 1
-        # difference += dist(action[i].x * w - o1x, action[i].y * h - o1y, 
-        #                     target[i].x * w - o2x, target[i].y * h - o2y)
-        body1.append([action[i].x * w - o1x, action[i].y * h - o1y])
-        body2.append([target[i].x * w - o2x, target[i].y * h - o2y])
-    mtx1, mtx2, disparity = procrustes(np.array(body1), np.array(body2))
-    return disparity
-        
+        body1.append([action[i].x * w , action[i].y * h])
+        body2.append([target[i].x * w, target[i].y * h])
+    _, _, disparity = procrustes(np.array(body1), np.array(body2))
+    return disparity * 1e2
+
+
+def match_batch(action, target, w, h):
+    best = 1e9
+    for i in action:
+        for j in target:
+            best = min(best, match(i, j, w, h))
+    return best
+
 
 # main
 if __name__ == '__main__':
@@ -70,11 +64,8 @@ if __name__ == '__main__':
     h = int(target[0].shape[0])
     for i in range(max(len(action), len(target))):
         frame1, frame2 = cv2.resize(action[-1], (w//2, h//2)), cv2.resize(target[-1], (w//2, h//2))
-        if i < len(action):
-            frame1 = cv2.resize(action[i], (w//2, h//2))
-        if i < len(target):
-            frame2 = cv2.resize(target[i], (w//2, h//2))
-        frame = cv2.hconcat([frame1, frame2])
-        cv2.imshow("video", frame)
+        if i < len(action): frame1 = cv2.resize(action[i], (w//2, h//2))
+        if i < len(target): frame2 = cv2.resize(target[i], (w//2, h//2))
+        cv2.imshow("video", cv2.hconcat([frame1, frame2]))
         if cv2.waitKey(20) & 0xFF == ord('q'):
             break
