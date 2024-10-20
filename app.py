@@ -263,11 +263,11 @@ def performance_screen(scores):
     avg_score = sum(scores) / len(scores) if scores else 0
 
     # Determine performance based on average score
-    if avg_score < 1.0:
+    if avg_score < 10:
         performance = "Perfect!"
-    elif 1.0 <= avg_score < 1.5:
+    elif 10 <= avg_score < 20:
         performance = "Great!"
-    elif 1.5 <= avg_score < 2.5:
+    elif 20 <= avg_score < 30:
         performance = "Good"
     else:
         performance = "Keep Practicing!"

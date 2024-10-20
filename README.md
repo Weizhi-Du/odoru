@@ -22,6 +22,11 @@ Master Division
 
 [![text](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/duw)
 
+**En "Peter" Wei**
+- First-year
+- Majors: Computer Science
+- Modeling
+
 **Zheyuan Wu**
 - Junior
 - Majors: Math + Computer Science
@@ -29,19 +34,14 @@ Master Division
 
 [![text](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/zheyuan-wu-742b1a227/)
 
-**En "Peter" Wei**
-- First-year
-- Majors: Computer Science
-- Modeling
-
 
 ## Technical Stacks
 
-- Frontend: HTML5, CSS3, JavaScript
+- Frontend: Next.js
 - Backend: Flask, Flask-SocketIO
 - Computer Vision: OpenCV, MediaPipe
 - Real-time Communication: Socket.IO
-- Python Packages: NumPy, Eventlet
+- Python Packages: Numpy, Pygame
 
 ## Installation
 
@@ -67,7 +67,7 @@ Master Division
    ```bash
    pip install -r requirements.txt
 
-5. **Open with Web UI:**
+5. **Open with UI:**
 
    ```bash
    python app.py
