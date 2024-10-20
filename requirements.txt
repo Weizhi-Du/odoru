@@ -3,3 +3,4 @@ Flask-SocketIO
 eventlet
 opencv-python
 mediapipe
+pygame
