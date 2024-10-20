@@ -9,7 +9,7 @@ from scipy.spatial import procrustes
 pygame.init()
 
 # Set up the display
-window_width, window_height = 960, 540
+window_width, window_height = 640 + 270, 480
 screen = pygame.display.set_mode((window_width, window_height))
 pygame.display.set_caption("Dance Game")
 clock = pygame.time.Clock()
