@@ -1,20 +1,48 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+from tqdm import tqdm
 from scipy.spatial import procrustes
 
 
-class PoseMatcher:
-    def __init__(self, w = 270, h = 480, max_step = 10):
-        self.w, self.h = w, h
+def read_video(path):
+    video = cv2.VideoCapture(path)
+    if not video.isOpened():
+        print(f"无法打开视频文件: {path}")
+    frames = []
+    while True:
+        ret, frame = video.read()
+        if not ret:
+            break
+        frames.append(frame)
+    video.release()
+    return frames
+
+
+class PosePipline:
+    def __init__(self, target_path = './match/weien.mp4', max_step = 10):
+        self.target = read_video(target_path)
+        self.w, self.h = self.target[0].shape[1], self.target[0].shape[0]
         self.max_step = max_step
-        self.batch_action, self.batch_target = [], []
+        self.init()
+        # 预处理
+        model = self.mp_pose.Pose()
+        self.target_pose = []
+        for frame in tqdm(self.target):
+            pose = self.detect_pose(model, frame)
+            self.target_pose.append(pose)
+        for i, frame in enumerate(self.target):
+            self.draw(frame, self.target_pose[min(i+10, len(self.target_pose)-1)])
+
+    # 重启
+    def init(self): 
+        self.now_frame = 0
+        self.batch = []
         self.score = 0
-        # 模型配置
         self.mp_pose = mp.solutions.pose
         self.pose_landmark = self.mp_pose.PoseLandmark
         self.mp_drawing = mp.solutions.drawing_utils
-        self.model1, self.model2 =  self.mp_pose.Pose(), self.mp_pose.Pose()
+        self.model = self.mp_pose.Pose()
 
     # 动作识别
     def detect_pose(self, model, frame):
@@ -48,46 +76,28 @@ class PoseMatcher:
             self.mp_drawing.draw_landmarks(frame, result.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
                 
     # 调用
-    def __call__(self, frame1, frame2):
-        res1, res2 = self.detect_pose(self.model1, frame1), self.detect_pose(self.model2, frame2)
-        self.batch_action.append(res1); self.batch_target.append(res2)
-        if len(self.batch_target) == self.max_step:
-            self.score = self.match_batch(self.batch_action, self.batch_target)
-            self.batch_action, self.batch_target = [], []
-        self.draw(frame1, res1); self.draw(frame2, res2)
-        return frame1, frame2, self.score
+    def __call__(self, frame):
+        pose = self.detect_pose(self.model, frame)
+        self.batch.append(pose)
+        if len(self.batch) == self.max_step:
+            self.score = self.match_batch(self.batch, self.target_pose[self.now_frame-self.max_step+1:self.now_frame+1])
+            self.batch = []
+        self.draw(frame, pose)
+        self.now_frame = min(len(self.target)-1, self.now_frame+1)
+        return frame, self.target[self.now_frame], self.score
 
 
 ##########################
 
 
-# 读取视频
-def read_video(path):
-    video = cv2.VideoCapture(path)
-    if not video.isOpened():
-        print(f"无法打开视频文件: {path}")
-    frames = []
-    while True:
-        ret, frame = video.read()
-        if not ret:
-            break
-        frames.append(frame)
-    video.release()
-    return frames
-
-
 # main
 def compare():
     w, h = 270, 480
-    model = PoseMatcher(w, h)
-    action = read_video('./match/weizhi.mp4')
-    target = read_video('./match/weien.mp4')[30:]
-    for i in range(max(len(action), len(target))):
-        frame1, frame2 = cv2.resize(action[-1], (w, h)), cv2.resize(target[-1], (w, h))
-        if i < len(action): frame1 = cv2.resize(action[i], (w, h))
-        if i < len(target): frame2 = cv2.resize(target[i], (w, h))
-        
-        frame1, frame2, score = model(frame1, frame2)
+    model = PosePipline('./match/weizhi.mp4')
+    action = read_video('./match/weien.mp4')[30:]
+    for frame in action:        
+        frame1, frame2, score = model(frame)
+        frame1, frame2 = cv2.resize(frame1, (w, h)), cv2.resize(frame2, (w, h))
         frame = cv2.hconcat([frame1, frame2])
         cv2.putText(frame, str(round(score,1)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 3)
         cv2.imshow("video", frame)
@@ -96,31 +106,23 @@ def compare():
 
 if __name__ == '__main__':
     # compare()
-    target = read_video('./match/weien.mp4')
     cap = cv2.VideoCapture(0)
     w, h = 270, 480
-
-    output_file = "/match/pose_output.mp4"
+    output_file = "./match/pose_output.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_file, fourcc, 30, (w*2, h))
-
-    i = 0
-    model = PoseMatcher(w, h)
+    model = PosePipline('./match/weien.mp4')
     while cap.isOpened():
-        ret, frame1 = cap.read()
+        ret, frame = cap.read()
         if not ret: break
-        frame1, frame2 = cv2.flip(frame1[-h:, -w:], 1), cv2.resize(target[-1], (w, h))
-        if i < len(target): frame2 = cv2.resize(target[i], (w, h))
-        
-        frame1, frame2, score = model(frame1, frame2)
+        frame = cv2.flip(frame[-h:, -w:], 1)    
+        frame1, frame2, score = model(frame)
+        frame1, frame2 = cv2.resize(frame1, (w, h)), cv2.resize(frame2, (w, h))
         frame = cv2.hconcat([frame1, frame2])
         cv2.putText(frame, str(round(score,1)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 3)
         out.write(frame)
-
         cv2.imshow("video", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'): break
-        i += 1
-    
     cap.release()
     out.release()
     cv2.destroyAllWindows()
