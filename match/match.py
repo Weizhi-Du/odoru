@@ -43,6 +43,8 @@ class PosePipline:
         self.pose_landmark = self.mp_pose.PoseLandmark
         self.mp_drawing = mp.solutions.drawing_utils
         self.model = self.mp_pose.Pose()
+        self.landmark_spec = mp.solutions.drawing_utils.DrawingSpec(color=(0, 255, 0), thickness=5, circle_radius=2)
+        self.connection_spec = mp.solutions.drawing_utils.DrawingSpec(color=(0, 255, 0), thickness=5)
 
     # 动作识别
     def detect_pose(self, model, frame):
@@ -57,7 +59,7 @@ class PosePipline:
         body1, body2 = [], []
         for i in [0, 11, 12, 13, 14, 21, 22, 23, 24, 25, 26, 27, 28]:
             if action[i].visibility < 0.5 or target[i].visibility < 0.5: continue
-            body1.append([action[i].x * self.w1 , action[i].y * self.h1])
+            body1.append([action[i].x * self.w1, action[i].y * self.h1])
             body2.append([target[i].x * self.w2, target[i].y * self.h2])
         _, _, disparity = procrustes(np.array(body1), np.array(body2))
         return disparity * 1e2
@@ -73,7 +75,9 @@ class PosePipline:
     # 绘制骨骼
     def draw(self, frame, result):
         if result.pose_landmarks:
-            self.mp_drawing.draw_landmarks(frame, result.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
+            self.mp_drawing.draw_landmarks(frame, result.pose_landmarks, self.mp_pose.POSE_CONNECTIONS,
+                                           landmark_drawing_spec = self.landmark_spec,
+                                            connection_drawing_spec = self.connection_spec)
                 
     # 调用
     def __call__(self, frame):
