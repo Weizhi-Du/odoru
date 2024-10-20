@@ -4,13 +4,12 @@ const Footer = () => (
   >
     <div className="text-center lg:text-left">
       <p className="font-cal text-lg sm:text-2xl text-black">
-        Video Course Starter Kit Demo
+        Odoru
       </p>
       <p
         className="text-sm text-gray-700 mt-2 lg:mt-0"
       >
-        This is a demo site showcasing how to build a video course
-        starter kit with{" "}
+        This is a test site for Real-Time Dance Companion Web App powered by {" "}
         <a
           className="text-black font-semibold underline"
           href="https://mux.com?utm_source=video-course-starter-kit"
@@ -27,11 +26,11 @@ const Footer = () => (
     >
       <a
         className="flex-auto font-cal text-lg bg-black text-white border border-black rounded-md py-1 sm:py-3 px-5 hover:text-black hover:bg-white transition-all ease-in-out duration-150 whitespace-no-wrap"
-        href="https://github.com/muxinc/video-course-starter-kit"
+        href="https://github.com/Weizhi-Du/odoru"
         rel="noreferrer"
         target="_blank"
       >
-        Clone and deploy
+        Star us on Git
       </a>
     </div>
   </footer>
