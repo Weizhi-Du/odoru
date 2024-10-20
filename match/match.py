@@ -22,7 +22,7 @@ def read_video(path):
 class PosePipline:
     def __init__(self, target_path = './match/weien.mp4', max_step = 10):
         self.target = read_video(target_path)
-        self.w, self.h = self.target[0].shape[1], self.target[0].shape[0]
+        self.w2, self.h2 = self.target[0].shape[1], self.target[0].shape[0]
         self.max_step = max_step
         self.init()
         # 预处理
@@ -57,8 +57,8 @@ class PosePipline:
         body1, body2 = [], []
         for i in [0, 11, 12, 13, 14, 21, 22, 23, 24, 25, 26, 27, 28]:
             if action[i].visibility < 0.5 or target[i].visibility < 0.5: continue
-            body1.append([action[i].x * self.w , action[i].y * self.h])
-            body2.append([target[i].x * self.w, target[i].y * self.h])
+            body1.append([action[i].x * self.w1 , action[i].y * self.h1])
+            body2.append([target[i].x * self.w2, target[i].y * self.h2])
         _, _, disparity = procrustes(np.array(body1), np.array(body2))
         return disparity * 1e2
 
@@ -77,6 +77,7 @@ class PosePipline:
                 
     # 调用
     def __call__(self, frame):
+        self.w1, self.h1 = frame.shape[1], frame.shape[0]
         pose = self.detect_pose(self.model, frame)
         self.batch.append(pose)
         if len(self.batch) == self.max_step:
@@ -107,17 +108,17 @@ def compare():
 if __name__ == '__main__':
     # compare()
     cap = cv2.VideoCapture(0)
-    w, h = 270, 480
+    w1, w2, h = 640, 270, 480
     output_file = "./match/pose_output.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(output_file, fourcc, 30, (w*2, h))
+    out = cv2.VideoWriter(output_file, fourcc, 30, (w1+w2, h))
     model = PosePipline('./match/weien.mp4')
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret: break
-        frame = cv2.flip(frame[-h:, -w:], 1)    
+        frame = cv2.flip(frame, 1)    
         frame1, frame2, score = model(frame)
-        frame1, frame2 = cv2.resize(frame1, (w, h)), cv2.resize(frame2, (w, h))
+        frame1, frame2 = cv2.resize(w1, h), cv2.resize(frame2, (w2, h))
         frame = cv2.hconcat([frame1, frame2])
         cv2.putText(frame, str(round(score,1)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 3)
         out.write(frame)
