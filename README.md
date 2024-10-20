@@ -13,6 +13,10 @@ This repository serves as our group's submission to the HackWashU Hackathon 2024
 
 Master Division
 
+## Link to Demo Video
+
+https://drive.google.com/file/d/1uV0HPopR7rYMq_374srzIFqs1AVC01Rd/view?usp=sharing
+
 ## Team Members
 
 **Weizhi Du**
